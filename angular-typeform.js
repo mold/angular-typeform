@@ -61,29 +61,39 @@
 			}
 
 			//init when we have the params
-			$timeout(function(){
-				initTypeformScript();
+			$timeout(function() {
+				// only if it's not a custom iframe
+				!$scope.tfCustom && initTypeformScript();
 			});
 
 		}])
-		.directive('typeformEmbed', function typeformEmbed() {
+		.directive('typeformEmbed', ["$sce", "$httpParamSerializer", function typeformEmbed($sce, $httpParamSerializer) {
 			return {
 				restrict: 'EA',
 				replace: true,
 				scope: {
 					tfId: '@',
 					tfText: '@',
-					tfStyle: '@'
+					tfHidden: '=?',
+					tfCustom: '@?',
 				},
-				template: '<div class="typeform-widget" ng-attr-data-url="https://{{accountId}}.typeform.com/to/{{tfId}}" ng-attr-data-text="{{tfText}}" ng-attr-style="{{style}}"></div>',
+				template: function(tElement, tAttrs) {
+					if (angular.isUndefined(tAttrs.tfCustom)) {
+						return '<div class="typeform-widget" ng-attr-data-url="{{formUrl}}" ng-attr-data-text="{{tfText}}"></div>'
+					} else {
+						return '<div class="typeform-widget-custom"><iframe ng-src="{{formUrl}}" width="100%" height="100%" frameborder="0"></iframe></div>';
+					}
+				},
 				controller: 'ControllerEmbed',
-				link: function (scope, element, attrs) {
-
+				link: function(scope, element, attrs) {
 					var defaultStyle = "height:100%; margin:0;";
-					scope.style= scope.tfStyle ? scope.tfStyle : defaultStyle;
+					scope.style = scope.tfStyle ? scope.tfStyle : defaultStyle;
+					scope.urlParams = $httpParamSerializer(scope.tfHidden);
+
+					scope.formUrl = $sce.trustAsResourceUrl("https://" + scope.accountId + ".typeform.com/to/" + scope.tfId + "?" + scope.urlParams);
 				}
 			};
-		});
+		}]);
 
 
 	angular.module('angularTypeform')

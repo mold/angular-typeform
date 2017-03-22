@@ -90,7 +90,9 @@
 					scope.style = scope.tfStyle ? scope.tfStyle : defaultStyle;
 					scope.urlParams = $httpParamSerializer(scope.tfHidden);
 
-					scope.formUrl = $sce.trustAsResourceUrl("https://" + scope.accountId + ".typeform.com/to/" + scope.tfId + "?" + scope.urlParams);
+					attrs.$observe('tfId', function() {
+						scope.formUrl = $sce.trustAsResourceUrl("https://" + scope.accountId + ".typeform.com/to/" + scope.tfId + "?" + scope.urlParams);
+					});
 				}
 			};
 		}]);
